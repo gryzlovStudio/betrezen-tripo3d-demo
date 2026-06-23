@@ -13,36 +13,92 @@
     font-family: -apple-system, 'Helvetica Neue', sans-serif;
     min-height: 100%;
     overflow-x: hidden;
+    -webkit-text-size-adjust: 100%;
   }
-  body { padding: 12px; }
+  body { padding: 12px 12px 40px; }
 
-  .header {
+  .top {
     text-align: center;
-    padding: 14px 8px 20px;
+    padding: 16px 8px 24px;
+    max-width: 720px;
+    margin: 0 auto;
   }
-  .header h1 {
+  .top h1 {
     color: #f0c060;
-    font-size: clamp(15px, 4vw, 20px);
+    font-size: clamp(16px, 4.5vw, 22px);
     letter-spacing: 2px;
     text-transform: uppercase;
     font-weight: 700;
   }
-  .header p {
+  .top p {
     color: #8a8480;
-    font-size: clamp(10px, 2.5vw, 13px);
-    margin-top: 6px;
-    letter-spacing: 1px;
+    font-size: clamp(11px, 2.8vw, 13px);
+    margin-top: 8px;
+    letter-spacing: 0.5px;
+    line-height: 1.5;
   }
 
-  .grid {
+  .section {
+    max-width: 1200px;
+    margin: 0 auto 32px;
+    border: 1px solid #1a1a25;
+    border-radius: 14px;
+    padding: 14px;
+    background: rgba(15, 15, 25, 0.5);
+  }
+  .section h2 {
+    color: #f0c060;
+    font-size: clamp(12px, 3vw, 14px);
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    font-weight: 700;
+    margin-bottom: 4px;
+  }
+  .section .sub {
+    color: #7a7570;
+    font-size: 11px;
+    letter-spacing: 0.5px;
+    margin-bottom: 14px;
+  }
+
+  /* Pair: reference + viewer(s) */
+  .pair {
     display: grid;
     grid-template-columns: 1fr;
-    gap: 14px;
-    max-width: 1100px;
-    margin: 0 auto;
+    gap: 12px;
   }
-  @media (min-width: 760px) {
-    .grid { grid-template-columns: 1fr 1fr; }
+  @media (min-width: 820px) {
+    .pair { grid-template-columns: 1fr 2fr; align-items: start; }
+  }
+  .ref-img {
+    width: 100%;
+    aspect-ratio: 9 / 16;
+    object-fit: cover;
+    border-radius: 10px;
+    background: #08080d;
+    display: block;
+  }
+  .ref-label {
+    margin-top: 6px;
+    color: #6a6560;
+    font-size: 10px;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    text-align: center;
+  }
+  .ref-block {
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* Viewers grid (right side) */
+  .viewers {
+    display: grid;
+    gap: 10px;
+  }
+  .viewers.single { grid-template-columns: 1fr; }
+  .viewers.quad {
+    grid-template-columns: 1fr 1fr;
   }
 
   .cell {
@@ -51,108 +107,144 @@
     background: radial-gradient(ellipse at 50% 60%, #1f1c2a 0%, #08080d 100%);
     border-radius: 10px;
     overflow: hidden;
-    box-shadow: 0 4px 24px rgba(0,0,0,0.4);
+    box-shadow: 0 4px 16px rgba(0,0,0,0.4);
+  }
+  .cell.tall {
+    aspect-ratio: 3 / 4;
   }
   model-viewer {
     width: 100%; height: 100%;
     --poster-color: #08080d;
     background: transparent;
   }
-  .label {
-    position: absolute; bottom: 10px; left: 14px;
-    color: #d0c898; font-size: 11px; letter-spacing: 1.5px;
+  .lbl {
+    position: absolute; bottom: 8px; left: 12px;
+    color: #d0c898; font-size: 10px; letter-spacing: 1.5px;
     text-transform: uppercase; font-weight: 600;
     text-shadow: 0 1px 3px rgba(0,0,0,0.9);
     z-index: 10; pointer-events: none;
-    opacity: 0.9;
+    opacity: 0.85;
   }
-  .hint {
+
+  .footer {
     text-align: center;
-    color: #6a6560;
-    font-size: 11px;
-    margin: 16px 0 8px;
-    letter-spacing: 1px;
+    color: #5a5550;
+    font-size: 10px;
+    margin-top: 12px;
+    letter-spacing: 1.5px;
   }
 </style>
 </head>
 <body>
 
-<div class="header">
+<div class="top">
   <h1>BETREZEN · Tripo3D Raw AI</h1>
-  <p>4 модели без ручной правки · поверни / зум пальцем</p>
+  <p>6 моделей сгенерированы Tripo3D без ручной правки.<br>Слева — оригинальные референсы клиента, справа — сырой выход нейросети.</p>
 </div>
 
-<div class="grid">
-  <div class="cell">
-    <model-viewer
-      src="character%2B3d%2Bmodel.glb"
-      alt="Head"
-      auto-rotate auto-rotate-delay="0" rotation-per-second="30deg"
-      camera-controls touch-action="pan-y"
-      camera-orbit="0deg 75deg auto"
-      shadow-intensity="0.85" shadow-softness="0.8"
-      exposure="0.9"
-      environment-image="neutral"
-      tone-mapping="aces"
-      interaction-prompt="none"
-      loading="lazy" reveal="auto">
-    </model-viewer>
-    <div class="label">Head</div>
-  </div>
-
-  <div class="cell">
-    <model-viewer
-      src="angel%2B3d%2Bmodel.glb"
-      alt="Bust + Wings"
-      auto-rotate auto-rotate-delay="0" rotation-per-second="30deg"
-      camera-controls touch-action="pan-y"
-      camera-orbit="0deg 80deg auto"
-      shadow-intensity="0.85" shadow-softness="0.8"
-      exposure="0.9"
-      environment-image="neutral"
-      tone-mapping="aces"
-      interaction-prompt="none"
-      loading="lazy" reveal="auto">
-    </model-viewer>
-    <div class="label">Bust + Wings</div>
-  </div>
-
-  <div class="cell">
-    <model-viewer
-      src="mythical%2Bhumanoid%2B3d%2Bmodel.glb"
-      alt="Full Body"
-      auto-rotate auto-rotate-delay="0" rotation-per-second="30deg"
-      camera-controls touch-action="pan-y"
-      camera-orbit="0deg 85deg auto"
-      shadow-intensity="0.85" shadow-softness="0.8"
-      exposure="0.9"
-      environment-image="neutral"
-      tone-mapping="aces"
-      interaction-prompt="none"
-      loading="lazy" reveal="auto">
-    </model-viewer>
-    <div class="label">Full Body</div>
-  </div>
-
-  <div class="cell">
-    <model-viewer
-      src="hand%2B3d%2Bmodel.glb"
-      alt="Hand"
-      auto-rotate auto-rotate-delay="0" rotation-per-second="30deg"
-      camera-controls touch-action="pan-y"
-      camera-orbit="0deg 80deg auto"
-      shadow-intensity="0.85" shadow-softness="0.8"
-      exposure="0.9"
-      environment-image="neutral"
-      tone-mapping="aces"
-      interaction-prompt="none"
-      loading="lazy" reveal="auto">
-    </model-viewer>
-    <div class="label">Hands</div>
+<!-- Section 1: angel concept → 4 models -->
+<div class="section">
+  <h2>1 · Angel Concept</h2>
+  <div class="sub">4 модели по разделам тела из одного полнокадрового референса</div>
+  <div class="pair">
+    <div class="ref-block">
+      <img class="ref-img" src="refs/ref_angel_concept.jpg" alt="Reference: angel concept">
+      <div class="ref-label">Reference</div>
+    </div>
+    <div class="viewers quad">
+      <div class="cell">
+        <model-viewer src="character%2B3d%2Bmodel.glb" alt="Head"
+          auto-rotate auto-rotate-delay="0" rotation-per-second="30deg"
+          camera-controls touch-action="pan-y"
+          camera-orbit="0deg 75deg auto"
+          shadow-intensity="0.85" shadow-softness="0.8"
+          exposure="0.9" environment-image="neutral" tone-mapping="aces"
+          interaction-prompt="none" loading="lazy" reveal="auto"></model-viewer>
+        <div class="lbl">Head</div>
+      </div>
+      <div class="cell">
+        <model-viewer src="angel%2B3d%2Bmodel.glb" alt="Bust"
+          auto-rotate auto-rotate-delay="0" rotation-per-second="30deg"
+          camera-controls touch-action="pan-y"
+          camera-orbit="0deg 80deg auto"
+          shadow-intensity="0.85" shadow-softness="0.8"
+          exposure="0.9" environment-image="neutral" tone-mapping="aces"
+          interaction-prompt="none" loading="lazy" reveal="auto"></model-viewer>
+        <div class="lbl">Bust + Wings</div>
+      </div>
+      <div class="cell">
+        <model-viewer src="mythical%2Bhumanoid%2B3d%2Bmodel.glb" alt="Full Body"
+          auto-rotate auto-rotate-delay="0" rotation-per-second="30deg"
+          camera-controls touch-action="pan-y"
+          camera-orbit="0deg 85deg auto"
+          shadow-intensity="0.85" shadow-softness="0.8"
+          exposure="0.9" environment-image="neutral" tone-mapping="aces"
+          interaction-prompt="none" loading="lazy" reveal="auto"></model-viewer>
+        <div class="lbl">Full Body</div>
+      </div>
+      <div class="cell">
+        <model-viewer src="hand%2B3d%2Bmodel.glb" alt="Hand"
+          auto-rotate auto-rotate-delay="0" rotation-per-second="30deg"
+          camera-controls touch-action="pan-y"
+          camera-orbit="0deg 80deg auto"
+          shadow-intensity="0.85" shadow-softness="0.8"
+          exposure="0.9" environment-image="neutral" tone-mapping="aces"
+          interaction-prompt="none" loading="lazy" reveal="auto"></model-viewer>
+        <div class="lbl">Hand</div>
+      </div>
+    </div>
   </div>
 </div>
 
-<div class="hint">3D.GRYZ Studio · Wellore</div>
+<!-- Section 2: portrait v1 -->
+<div class="section">
+  <h2>2 · Portrait v1</h2>
+  <div class="sub">Голова с пламенным нимбом · вариант 1 (более жёсткое лицо)</div>
+  <div class="pair">
+    <div class="ref-block">
+      <img class="ref-img" src="refs/ref_portrait_v1.jpg" alt="Reference: portrait v1">
+      <div class="ref-label">Reference</div>
+    </div>
+    <div class="viewers single">
+      <div class="cell tall">
+        <model-viewer src="fantasy%2Bcharacter%2B3d%2Bmodel.glb" alt="Portrait v1"
+          auto-rotate auto-rotate-delay="0" rotation-per-second="30deg"
+          camera-controls touch-action="pan-y"
+          camera-orbit="0deg 75deg auto"
+          shadow-intensity="0.85" shadow-softness="0.8"
+          exposure="0.9" environment-image="neutral" tone-mapping="aces"
+          interaction-prompt="none" loading="lazy" reveal="auto"></model-viewer>
+        <div class="lbl">Portrait v1</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Section 3: portrait v2 -->
+<div class="section">
+  <h2>3 · Portrait v2</h2>
+  <div class="sub">Голова с пламенным нимбом · вариант 2 (мягче, тёплый оттенок)</div>
+  <div class="pair">
+    <div class="ref-block">
+      <img class="ref-img" src="refs/ref_portrait_v2.jpg" alt="Reference: portrait v2">
+      <div class="ref-label">Reference</div>
+    </div>
+    <div class="viewers single">
+      <div class="cell tall">
+        <model-viewer src="fiery%2Bhorned%2Bcharacter%2B3d%2Bmodel.glb" alt="Portrait v2"
+          auto-rotate auto-rotate-delay="0" rotation-per-second="30deg"
+          camera-controls touch-action="pan-y"
+          camera-orbit="0deg 75deg auto"
+          shadow-intensity="0.85" shadow-softness="0.8"
+          exposure="0.9" environment-image="neutral" tone-mapping="aces"
+          interaction-prompt="none" loading="lazy" reveal="auto"></model-viewer>
+        <div class="lbl">Portrait v2</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="footer">3D.GRYZ Studio · Wellore Betrezen Tripo3D demo</div>
 
 <script>
   function applyMatte(mv) {
