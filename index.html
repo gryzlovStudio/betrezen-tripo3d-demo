@@ -98,7 +98,10 @@
   }
   .viewers.single { grid-template-columns: 1fr; }
   .viewers.quad {
-    grid-template-columns: 1fr 1fr;
+    grid-template-columns: 1fr;
+  }
+  @media (min-width: 820px) {
+    .viewers.quad { grid-template-columns: 1fr 1fr; }
   }
 
   .cell {
@@ -125,6 +128,30 @@
     z-index: 10; pointer-events: none;
     opacity: 0.85;
   }
+  .mode-tag {
+    position: absolute; top: 8px; right: 10px;
+    color: #f0c060; font-size: 9px; letter-spacing: 1.5px;
+    text-transform: uppercase; font-weight: 700;
+    text-shadow: 0 1px 3px rgba(0,0,0,0.9);
+    z-index: 10; pointer-events: none;
+    opacity: 0.7;
+  }
+  /* Swipe overlay across each cell */
+  .cell::after {
+    content: '';
+    position: absolute; top: 0; bottom: 0; left: -120%;
+    width: 60%;
+    background: linear-gradient(90deg,
+      transparent 0%,
+      rgba(240, 192, 96, 0.0) 30%,
+      rgba(240, 192, 96, 0.45) 50%,
+      rgba(240, 192, 96, 0.0) 70%,
+      transparent 100%);
+    pointer-events: none;
+    z-index: 9;
+    transition: left 0.7s cubic-bezier(.5, 0, .5, 1);
+  }
+  .cell.swiping::after { left: 160%; }
 
   .footer {
     text-align: center;
@@ -159,7 +186,7 @@
           camera-orbit="0deg 75deg auto"
           shadow-intensity="0.85" shadow-softness="0.8"
           exposure="0.9" environment-image="neutral" tone-mapping="aces"
-          interaction-prompt="none" loading="lazy" reveal="auto"></model-viewer>
+          interaction-prompt="none" loading="eager" reveal="auto"></model-viewer>
         <div class="lbl">Head</div>
       </div>
       <div class="cell">
@@ -169,7 +196,7 @@
           camera-orbit="0deg 80deg auto"
           shadow-intensity="0.85" shadow-softness="0.8"
           exposure="0.9" environment-image="neutral" tone-mapping="aces"
-          interaction-prompt="none" loading="lazy" reveal="auto"></model-viewer>
+          interaction-prompt="none" loading="eager" reveal="auto"></model-viewer>
         <div class="lbl">Bust + Wings</div>
       </div>
       <div class="cell">
@@ -179,7 +206,7 @@
           camera-orbit="0deg 85deg auto"
           shadow-intensity="0.85" shadow-softness="0.8"
           exposure="0.9" environment-image="neutral" tone-mapping="aces"
-          interaction-prompt="none" loading="lazy" reveal="auto"></model-viewer>
+          interaction-prompt="none" loading="eager" reveal="auto"></model-viewer>
         <div class="lbl">Full Body</div>
       </div>
       <div class="cell">
@@ -189,7 +216,7 @@
           camera-orbit="0deg 80deg auto"
           shadow-intensity="0.85" shadow-softness="0.8"
           exposure="0.9" environment-image="neutral" tone-mapping="aces"
-          interaction-prompt="none" loading="lazy" reveal="auto"></model-viewer>
+          interaction-prompt="none" loading="eager" reveal="auto"></model-viewer>
         <div class="lbl">Hand</div>
       </div>
     </div>
@@ -207,13 +234,13 @@
     </div>
     <div class="viewers single">
       <div class="cell tall">
-        <model-viewer src="fantasy%2Bcharacter%2B3d%2Bmodel.glb" alt="Portrait v1"
+        <model-viewer src="fiery%2Bhorned%2Bcharacter%2B3d%2Bmodel.glb" alt="Portrait v1"
           auto-rotate auto-rotate-delay="0" rotation-per-second="30deg"
           camera-controls touch-action="pan-y"
           camera-orbit="0deg 75deg auto"
           shadow-intensity="0.85" shadow-softness="0.8"
           exposure="0.9" environment-image="neutral" tone-mapping="aces"
-          interaction-prompt="none" loading="lazy" reveal="auto"></model-viewer>
+          interaction-prompt="none" loading="eager" reveal="auto"></model-viewer>
         <div class="lbl">Portrait v1</div>
       </div>
     </div>
@@ -231,13 +258,13 @@
     </div>
     <div class="viewers single">
       <div class="cell tall">
-        <model-viewer src="fiery%2Bhorned%2Bcharacter%2B3d%2Bmodel.glb" alt="Portrait v2"
+        <model-viewer src="fantasy%2Bcharacter%2B3d%2Bmodel.glb" alt="Portrait v2"
           auto-rotate auto-rotate-delay="0" rotation-per-second="30deg"
           camera-controls touch-action="pan-y"
           camera-orbit="0deg 75deg auto"
           shadow-intensity="0.85" shadow-softness="0.8"
           exposure="0.9" environment-image="neutral" tone-mapping="aces"
-          interaction-prompt="none" loading="lazy" reveal="auto"></model-viewer>
+          interaction-prompt="none" loading="eager" reveal="auto"></model-viewer>
         <div class="lbl">Portrait v2</div>
       </div>
     </div>
@@ -248,9 +275,8 @@
 
 <script>
   function applyMatte(mv) {
-    const model = mv.model;
-    if (!model) return;
-    model.materials.forEach(mat => {
+    if (!mv.model) return;
+    mv.model.materials.forEach(mat => {
       try {
         const pbr = mat.pbrMetallicRoughness;
         const mrTex = pbr.metallicRoughnessTexture;
@@ -263,8 +289,85 @@
       } catch(e) {}
     });
   }
-  document.querySelectorAll('model-viewer').forEach(v => {
-    v.addEventListener('load', () => applyMatte(v));
+
+  // Snapshot original base color textures + factors so we can toggle clay
+  function snapshotMaterials(mv) {
+    if (!mv.model || mv._snap) return;
+    mv._snap = mv.model.materials.map(mat => {
+      const pbr = mat.pbrMetallicRoughness;
+      let baseTex = null;
+      try { baseTex = pbr.baseColorTexture ? pbr.baseColorTexture.texture : null; } catch(e) {}
+      const f = pbr.baseColorFactor;
+      return {
+        baseTex,
+        baseFactor: f ? [f[0], f[1], f[2], f[3]] : [1, 1, 1, 1],
+      };
+    });
+  }
+
+  function setClay(mv, clay) {
+    if (!mv.model || !mv._snap) return;
+    mv.model.materials.forEach((mat, i) => {
+      const orig = mv._snap[i];
+      const pbr = mat.pbrMetallicRoughness;
+      try {
+        if (clay) {
+          if (pbr.baseColorTexture) {
+            try { pbr.baseColorTexture.setTexture(null); } catch(e) {}
+          }
+          pbr.setBaseColorFactor([0.72, 0.72, 0.74, 1.0]);
+        } else {
+          if (orig.baseTex && pbr.baseColorTexture) {
+            try { pbr.baseColorTexture.setTexture(orig.baseTex); } catch(e) {}
+          }
+          pbr.setBaseColorFactor(orig.baseFactor);
+        }
+      } catch(e) {}
+    });
+  }
+
+  function addModeTag(cell) {
+    if (cell.querySelector('.mode-tag')) return;
+    const tag = document.createElement('div');
+    tag.className = 'mode-tag';
+    tag.textContent = 'Textured';
+    cell.appendChild(tag);
+  }
+
+  const viewers = Array.from(document.querySelectorAll('model-viewer'));
+  viewers.forEach(v => {
+    addModeTag(v.parentElement);
+    v.addEventListener('load', () => {
+      applyMatte(v);
+      snapshotMaterials(v);
+    });
+  });
+
+  let clayMode = false;
+  function toggleClay() {
+    clayMode = !clayMode;
+    const cells = document.querySelectorAll('.cell');
+    cells.forEach(c => {
+      c.classList.add('swiping');
+      setTimeout(() => c.classList.remove('swiping'), 750);
+      const tag = c.querySelector('.mode-tag');
+      if (tag) tag.textContent = clayMode ? 'Clay' : 'Textured';
+    });
+    // Swap materials at the midpoint of the swipe (350ms)
+    setTimeout(() => {
+      viewers.forEach(v => setClay(v, clayMode));
+    }, 350);
+  }
+
+  // Start toggling once first model loads
+  let started = false;
+  viewers[0].addEventListener('load', () => {
+    if (started) return;
+    started = true;
+    setTimeout(() => {
+      toggleClay();
+      setInterval(toggleClay, 6000);
+    }, 3000);
   });
 </script>
 </body>
